@@ -12,66 +12,14 @@
     --bg: #D9D9D9;
     --font: 'Gill Sans', 'GillSans', 'Gill Sans MT', Calibri, sans-serif;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    font-family: var(--font);
-  }
-
-  .plate-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 0 1.5rem;
-    background: var(--bg);
-    gap: 1.1rem;
-  }
-
-  .headline {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--red);
-    text-align: center;
-    max-width: 380px;
-    margin: 0;
-  }
-
-  .plate-container {
-    position: relative;
-    width: 320px;
-    height: 320px;
-  }
-
-  .hint {
-    font-size: 13px;
-    color: var(--grey);
-    font-weight: 500;
-    margin: 0;
-  }
-
-  .tooltip {
-    position: absolute;
-    background: #fff;
-    color: var(--dark);
-    border-radius: 5px;
-    padding: 9px 13px;
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.4;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.18s;
-    width: 185px;
-    z-index: 10;
-    border-left: 3px solid transparent;
-  }
-
-  .tooltip.visible {
-    opacity: 1;
-  }
+  body { background: var(--bg); font-family: var(--font); }
+  .plate-wrap { display:flex; flex-direction:column; align-items:center; padding:2rem 0 1.5rem; gap:1.1rem; }
+  .headline { font-size:20px; font-weight:600; color:var(--red); text-align:center; max-width:400px; margin:0; line-height:1.4; }
+  .plate-container { position:relative; width:320px; height:320px; }
+  .hint { font-size:13px; color:var(--grey); font-weight:500; margin:0; }
+  .tooltip { position:absolute; background:#fff; color:var(--dark); border-radius:5px; padding:9px 13px; font-family:var(--font); font-size:13px; font-weight:500; line-height:1.4; pointer-events:none; opacity:0; transition:opacity 0.18s; width:185px; z-index:10; border-left:3px solid transparent; }
+  .tooltip.visible { opacity:1; }
 </style>
 </head>
 <body>
@@ -88,12 +36,16 @@
         </clipPath>
       </defs>
 
-      <!-- Your plate image. Keep plate.png in the same folder as this file. -->
-      <!-- x/y/width/height are tuned to zoom in past the background so only the plate shows. -->
+      <!--
+        The PNG is square. The plate (white rim) sits centred with background padding.
+        xMidYMid slice fills the circle and keeps aspect ratio intact — no distortion.
+        We make the image larger than the circle so it zooms in past the background.
+        Adjust x/y/width/height until the green halo disappears for your specific image.
+      -->
       <image href="plate.png"
-        x="-33" y="-33"
-        width="386" height="386"
-        preserveAspectRatio="none"
+        x="-89" y="-89"
+        width="498" height="498"
+        preserveAspectRatio="xMidYMid meet"
         clip-path="url(#plateClip)"
       />
 
@@ -115,7 +67,6 @@
         fill="#c47b2a" fill-opacity="0" style="cursor:pointer;"
         clip-path="url(#plateClip)"/>
 
-      <!-- Subtle rim -->
       <circle cx="160" cy="160" r="148" fill="none" stroke="#d4c9b0" stroke-width="3"/>
     </svg>
 
@@ -127,24 +78,9 @@
 
 <script>
   const sections = {
-    hit1: {
-      text: "Green leafy, non-starchy vegetables",
-      color: "#2a7d5f",
-      tipX: "left",
-      tipY: "mid"
-    },
-    hit2: {
-      text: "Plant protein",
-      color: "#D42B2B",
-      tipX: "right",
-      tipY: "top"
-    },
-    hit3: {
-      text: "Complex carbohydrates",
-      color: "#c47b2a",
-      tipX: "right",
-      tipY: "bottom"
-    }
+    hit1: { text: "Green leafy, non-starchy vegetables", color: "#2a7d5f", tipX: "left",  tipY: "mid"    },
+    hit2: { text: "Plant protein",                       color: "#D42B2B", tipX: "right", tipY: "top"    },
+    hit3: { text: "Complex carbohydrates",               color: "#c47b2a", tipX: "right", tipY: "bottom" }
   };
 
   const tooltip = document.getElementById('tooltip');
@@ -156,7 +92,7 @@
       el.setAttribute('fill-opacity', '0.22');
       tooltip.textContent = s.text;
       tooltip.style.borderLeftColor = s.color;
-      tooltip.style.left = (s.tipX === 'left' ? 6 : 320 - 185 - 6) + 'px';
+      tooltip.style.left = (s.tipX === 'left' ? 6 : 129) + 'px';
       if (s.tipY === 'top')    tooltip.style.top = '16px';
       if (s.tipY === 'mid')    tooltip.style.top = '120px';
       if (s.tipY === 'bottom') tooltip.style.top = '248px';
