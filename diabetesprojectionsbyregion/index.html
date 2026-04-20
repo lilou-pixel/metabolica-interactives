@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diabetes by Region</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #D42B2B;
+  --dark: #1a1a1a;
+  --grey: #6b7280;
+  --grey-light: #d1d5db;
+  --bg: #D9D9D9;
+  --green: #2a7d5f;
+  --font: 'Gill Sans','GillSans','Gill Sans MT',Calibri,sans-serif;
+  --h: 500px;
+}
+
+html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--bg); }
+
+#widget { position: relative; width: 100%; height: var(--h); background: var(--bg); }
+#viewport { position: absolute; inset: 0; overflow: hidden; }
+
+#track {
+  display: flex; height: var(--h);
+  transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+
+.slide {
+  flex: 0 0 100%; width: 100%; height: var(--h);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 64px 72px; background: var(--bg);
+  position: relative;
+}
+
+.slide-content { max-width: 820px; width: 100%; }
+
+#pbar {
+  position: absolute; bottom: 0; left: 0; height: 3px;
+  background: var(--red);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  z-index: 20; pointer-events: none;
+}
+
+#dots {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px; z-index: 20;
+}
+.dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--grey-light); transition: all 0.4s;
+  cursor: pointer; border: none; padding: 0;
+}
+.dot.active { background: var(--red); transform: scale(1.35); }
+.dot:hover:not(.active) { background: var(--grey); }
+
+.arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 20;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); border: 1px solid var(--grey-light);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 24px; color: var(--dark);
+  transition: all 0.25s; font-family: var(--font);
+}
+.arrow:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+.arrow.hidden { opacity: 0; pointer-events: none; }
+#arr-l { left: 16px; }
+#arr-r { right: 16px; }
+
+/* Intro */
+.intro-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.intro-inner h1 { font-size: 36px; font-weight: 700; line-height: 1.25; color: var(--dark); }
+.intro-inner h1 span { color: var(--red); }
+.intro-inner p { font-size: 15px; color: var(--grey); margin-top: 10px; line-height: 1.55; max-width: 500px; }
+.start-btn {
+  margin-top: 28px; padding: 12px 36px;
+  background: var(--red); color: #fff; border: none; border-radius: 4px;
+  font-family: var(--font); font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.start-btn:hover { background: #b02222; }
+
+
+
+/* Region slide */
+.region-eyebrow { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--grey); font-weight: 600; margin-bottom: 5px; }
+.region-name { font-size: 28px; font-weight: 700; color: var(--dark); line-height: 1.15; margin-bottom: 3px; }
+.region-sub { font-size: 13px; color: var(--grey); margin-bottom: 22px; }
+
+.legend { display: flex; gap: 18px; margin-bottom: 16px; }
+.leg-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--grey); font-weight: 500; }
+.leg-swatch { width: 26px; height: 10px; border-radius: 2px; }
+.leg-2024 { background: var(--red); opacity: 0.45; }
+.leg-2050 { background: var(--red); }
+
+.bar-row { display: flex; align-items: center; gap: 0; margin-bottom: 12px; }
+.bar-year { font-size: 12px; font-weight: 600; color: var(--grey); width: 38px; flex-shrink: 0; letter-spacing: .03em; }
+.bar-track { flex: 1; height: 34px; background: rgba(0,0,0,0.08); border-radius: 3px; position: relative; overflow: visible; }
+.bar-fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  border-radius: 3px; width: 0;
+}
+.bar-fill.bar-2024 { background: var(--red); opacity: 0.45; }
+.bar-fill.bar-2050 { background: var(--red); }
+
+.bar-pct {
+  position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+  font-size: 14px; font-weight: 700; color: var(--dark);
+  margin-left: 10px; white-space: nowrap;
+  opacity: 0;
+}
+
+
+.case-sentence {
+  font-size: 13px; color: var(--dark); line-height: 1.6;
+  margin-top: 16px; margin-bottom: 6px; max-width: 620px; font-weight: 500;
+}
+
+.note { font-size: 12px; color: var(--grey); line-height: 1.55; max-width: 620px; margin-top: 4px; }
+
+
+.src {
+  position: absolute; bottom: 36px; left: 64px; right: 64px;
+  font-size: 11px; color: var(--grey);
+}
+
+@media (max-width: 640px) {
+  .slide { padding: 24px 18px 60px; }
+  .arrow { display: none; }
+  .region-name { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+<div id="widget">
+  <div id="viewport"><div id="track"></div></div>
+  <div id="pbar"></div>
+  <div id="dots"></div>
+  <button class="arrow hidden" id="arr-l">&#8249;</button>
+  <button class="arrow" id="arr-r">&#8250;</button>
+</div>
+
+<script>
+const REGIONS = [
+  { name:'Middle East & North Africa', sub:'IDF MENA region · 21 countries', p24:17.6, p50:22.8, cases:'85 million people in the region have diabetes today. That number is projected to reach 163 million by 2050.', note:'The highest prevalence of any IDF region, and the second highest projected increase in cases by 2050.' },
+  { name:'Western Pacific', sub:'IDF WP region · 37 countries including China, Australia, Indonesia', p24:12.4, p50:14.7, cases:'215 million people in the region have diabetes today – more than any other IDF region. That number is projected to reach 254 million by 2050.', note:'' },
+  { name:'South-East Asia', sub:'IDF SEA region · 7 countries including India, Bangladesh, Sri Lanka', p24:9.7, p50:13.2, cases:'107 million people in the region have diabetes today. That number is projected to reach 185 million by 2050.', note:'The IDF SEA region is narrower than commonly understood – Indonesia, Thailand and Vietnam are classified in the Western Pacific region.' },
+  { name:'South & Central America', sub:'IDF SACA region · 19 countries and territories', p24:10.0, p50:12.3, cases:'35 million people in the region have diabetes today. That number is projected to reach 52 million by 2050.', note:'' },
+  { name:'Africa', sub:'IDF AFR region · 49 sub-Saharan countries and territories', p24:5.0, p50:5.9, cases:'25 million people in the region have diabetes today. That number is projected to reach 60 million by 2050 – the fastest rate of increase of any IDF region.', note:'Over 70% of cases are currently undiagnosed.' }
+];
+
+const MAX = 26;
+const TOTAL = REGIONS.length + 2;
+
+const track = document.getElementById('track');
+const pbar = document.getElementById('pbar');
+const dotsEl = document.getElementById('dots');
+const arrL = document.getElementById('arr-l');
+const arrR = document.getElementById('arr-r');
+const widget = document.getElementById('widget');
+let cur = 0, busy = false;
+
+/* Build intro */
+(function() {
+  const s = document.createElement('div');
+  s.className = 'slide';
+  s.innerHTML = `
+    <div class="intro-inner">
+      <h1>Diabetes by region:<br><span>2024 and the road to 2050</span></h1>
+      <p>How does each part of the world compare today – and where is the epidemic heading?</p>
+      <button class="start-btn" id="start-btn">See the data ›</button>
+    </div>
+    <div class="src">Source: IDF Diabetes Atlas, 11th edition, 2025</div>`;
+  track.appendChild(s);
+  s.querySelector('#start-btn').addEventListener('click', () => go(1));
+})();
+
+/* Build region slides */
+REGIONS.forEach(function(r, i) {
+  const s = document.createElement('div');
+  s.className = 'slide';
+
+  const w24 = (r.p24 / MAX * 100).toFixed(2);
+  const w50 = (r.p50 / MAX * 100).toFixed(2);
+
+
+  s.innerHTML = `
+    <div class="slide-content">
+      <div class="region-eyebrow">Region ${i+1} of ${REGIONS.length}</div>
+      <div class="region-name">${r.name}</div>
+      <div class="region-sub">${r.sub}</div>
+
+      <div class="legend">
+        <div class="leg-item"><div class="leg-swatch leg-2024"></div>2024 prevalence</div>
+        <div class="leg-item"><div class="leg-swatch leg-2050"></div>Projected 2050</div>
+      </div>
+
+      <div class="bar-row">
+        <div class="bar-year">2024</div>
+        <div class="bar-track">
+          <div class="bar-fill bar-2024" data-w="${w24}"></div>
+          <div class="bar-pct" data-bar="2024">${r.p24}%</div>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <div class="bar-year">2050</div>
+        <div class="bar-track">
+          <div class="bar-fill bar-2050" data-w="${w50}"></div>
+          <div class="bar-pct" data-bar="2050">${r.p50}%</div>
+        </div>
+      </div>
+
+      <div class="case-sentence">${r.cases}</div>
+      ${r.note ? `<div class="note">${r.note}</div>` : ''}
+    </div>
+    <div class="src">Source: IDF Diabetes Atlas, 11th edition, 2025</div>`;
+
+  track.appendChild(s);
+});
+
+/* Footnote slide */
+(function() {
+  const s = document.createElement('div');
+  s.className = 'slide';
+  s.innerHTML = `
+    <div class="src" style="font-size:11px;line-height:1.65;">Prevalence figures show the share of adults aged 20–79 with diabetes, diagnosed and undiagnosed. All figures are from the IDF Diabetes Atlas, 11th edition (2025), which covers 215 countries using data from studies conducted between 2005 and 2024. Five of the seven IDF regions are shown – those for which the Atlas publishes both a 2024 prevalence figure and a projected 2050 prevalence figure. Europe and North America &amp; Caribbean are excluded as the Atlas publishes projected case counts for these regions but not projected prevalence percentages, making a like-for-like comparison with the other regions impossible.</div>`;
+  track.appendChild(s);
+})();
+
+/* Dots */
+const dotEls = [];
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('button');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+  d.addEventListener('click', (function(n){ return function(){ go(n); }; })(i));
+  dotsEl.appendChild(d);
+  dotEls.push(d);
+}
+
+function ui() {
+  const w = widget.offsetWidth;
+  track.style.transform = 'translateX(-' + (cur * w) + 'px)';
+  pbar.style.width = (cur / (TOTAL - 1) * 100) + '%';
+  dotEls.forEach(function(d,i){ d.classList.toggle('active', i === cur); });
+  arrL.classList.toggle('hidden', cur === 0);
+  arrR.classList.toggle('hidden', cur === TOTAL - 1);
+}
+
+function animateBars(slideEl) {
+  const fills = slideEl.querySelectorAll('.bar-fill');
+  const pcts  = slideEl.querySelectorAll('.bar-pct');
+
+  fills.forEach(function(f){ f.style.transition = 'none'; f.style.width = '0%'; });
+  pcts.forEach(function(p){ p.style.opacity = '0'; p.style.transition = 'none'; });
+
+  /* 2024 bar */
+  setTimeout(function() {
+    fills[0].style.transition = 'width 0.85s cubic-bezier(0.4,0,0.2,1)';
+    fills[0].style.width = fills[0].dataset.w + '%';
+    setTimeout(function() {
+      pcts[0].style.transition = 'opacity 0.3s';
+      pcts[0].style.opacity = '1';
+    }, 750);
+  }, 100);
+
+  /* 2050 bar – starts after 2024 finishes */
+  setTimeout(function() {
+    fills[1].style.transition = 'width 0.85s cubic-bezier(0.4,0,0.2,1)';
+    fills[1].style.width = fills[1].dataset.w + '%';
+    setTimeout(function() {
+      pcts[1].style.transition = 'opacity 0.3s';
+      pcts[1].style.opacity = '1';
+    }, 750);
+  }, 1100);
+}
+
+function go(n) {
+  if (n < 0 || n >= TOTAL || busy) return;
+  busy = true;
+  cur = n;
+  ui();
+  if (n >= 1) {
+    const slides = track.querySelectorAll('.slide');
+    animateBars(slides[n]);
+  }
+  setTimeout(function(){ busy = false; }, 850);
+}
+
+let acc = 0, touchY = 0;
+widget.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  if (busy) return;
+  acc += e.deltaY;
+  if (Math.abs(acc) >= 80) { go(acc > 0 ? cur+1 : cur-1); acc = 0; }
+}, { passive: false });
+widget.addEventListener('touchstart', function(e){ touchY = e.touches[0].clientY; }, { passive: true });
+widget.addEventListener('touchend', function(e) {
+  const d = touchY - e.changedTouches[0].clientY;
+  if (Math.abs(d) > 40) go(d > 0 ? cur+1 : cur-1);
+}, { passive: true });
+window.addEventListener('keydown', function(e) {
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') go(cur+1);
+  if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   go(cur-1);
+});
+arrL.addEventListener('click', function(){ go(cur-1); });
+arrR.addEventListener('click', function(){ go(cur+1); });
+window.addEventListener('resize', function() {
+  track.style.transition = 'none';
+  ui();
+  requestAnimationFrame(function(){ track.style.transition = 'transform 0.8s cubic-bezier(0.4,0,0.2,1)'; });
+});
+
+ui();
+</script>
+</body>
+</html>
