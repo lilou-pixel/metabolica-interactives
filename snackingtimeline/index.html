@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Ultraprocessed Food Became Dominant</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #D42B2B;
+  --dark: #1a1a1a;
+  --grey: #6b7280;
+  --grey-light: #d1d5db;
+  --bg: #D9D9D9;
+  --font: 'Gill Sans','GillSans','Gill Sans MT',Calibri,sans-serif;
+  --h: 500px;
+}
+
+html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--bg); }
+
+#widget {
+  position: relative; width: 100%; height: var(--h);
+  background: var(--bg); overflow: hidden;
+}
+
+#tl-scroll {
+  position: absolute; inset: 0;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#tl-scroll::-webkit-scrollbar { display: none; }
+
+#tl-track {
+  display: flex; align-items: flex-start;
+  height: var(--h);
+  padding: 52px 80px 80px;
+  position: relative;
+}
+
+.spine {
+  position: absolute;
+  top: calc(52px + 7px);
+  left: 80px;
+  height: 1px;
+  background: rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+.node {
+  flex: 0 0 210px;
+  position: relative;
+  padding-top: 28px;
+  margin-right: 36px;
+}
+.node:last-child { margin-right: 0; }
+
+.node-dot {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid rgba(0,0,0,0.25);
+  z-index: 2;
+}
+.node.accent .node-dot { border-color: var(--red); background: var(--red); }
+.node.end .node-dot    { border-color: #185FA5; background: #185FA5; }
+
+.node-era {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--grey);
+  margin-bottom: 5px; line-height: 1.2;
+}
+.node-heading {
+  font-size: 14px; font-weight: 700; color: var(--dark);
+  margin-bottom: 8px; line-height: 1.3;
+}
+.node-body {
+  font-size: 12px; color: #444;
+  line-height: 1.65;
+}
+
+
+
+
+#pbar {
+  position: absolute; bottom: 0; left: 0; height: 3px;
+  background: var(--red); width: 0%;
+  pointer-events: none; z-index: 20;
+}
+
+#dots {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px; z-index: 20;
+}
+.dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--grey-light); transition: all 0.3s;
+  cursor: pointer; border: none; padding: 0;
+}
+.dot.active { background: var(--red); transform: scale(1.35); }
+.dot:hover:not(.active) { background: var(--grey); }
+
+.arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 20;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); border: 1px solid var(--grey-light);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 24px; color: var(--dark);
+  transition: all 0.25s; font-family: var(--font);
+}
+.arrow:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+.arrow.hidden { opacity: 0; pointer-events: none; }
+#arr-l { left: 16px; }
+#arr-r { right: 16px; }
+
+@media (max-width: 640px) {
+  #tl-track { padding: 52px 32px 80px; }
+  .spine { left: 32px; }
+  
+  .arrow { display: none; }
+  .node { flex: 0 0 175px; margin-right: 24px; }
+}
+</style>
+</head>
+<body>
+<div id="widget">
+  <div id="tl-scroll">
+    <div id="tl-track">
+      <div class="spine" id="spine"></div>
+    </div>
+  </div>
+  <div id="pbar"></div>
+  <div id="dots"></div>
+  <button class="arrow hidden" id="arr-l">&#8249;</button>
+  <button class="arrow" id="arr-r">&#8250;</button>
+  
+</div>
+
+<script>
+const NODES = [
+  {
+    era: 'Prehistory',
+    heading: 'Cravings that keep us alive',
+    body: 'Humans evolve to seek out sweet foods for vitamins and fat for calorie density, both scarce and worth pursuing when food is unreliable. The drives are adaptive.',
+    cls: ''
+  },
+  {
+    era: 'Early 20th century',
+    heading: 'Three meals, little between',
+    body: 'Three meals a day is the established norm in industrialised societies, consolidated by the Industrial Revolution. Between-meal eating is occasional and informal rather than a commercial occasion.',
+    cls: ''
+  },
+  {
+    era: '1970s\u20131980s',
+    heading: 'The ingredient is reinvented',
+    body: 'Industrial fractioning and extrusion allow proteins and grains to be broken down and rebuilt with additives, colours and flavourings\u2014producing foods engineered for palatability rather than nutrition.',
+    cls: 'accent'
+  },
+  {
+    era: '1970s onwards',
+    heading: 'Diets shift globally',
+    body: 'Across high- and middle-income countries, diets shift towards greater reliance on processed foods, edible oils and sugary drinks. Pace and timing vary significantly by country and region.',
+    cls: 'accent'
+  },
+  {
+    era: '1990s\u20132000s',
+    heading: 'The transition accelerates',
+    body: 'As incomes rise and transnational food corporations expand into new markets, ultraprocessed products become increasingly dominant across Latin America, Asia and parts of Africa, displacing traditional diets.',
+    cls: 'accent'
+  },
+  {
+    era: 'By 2000',
+    heading: 'A historic threshold is crossed',
+    body: 'For the first time in human history, the number of adults globally with excess weight surpasses those who are underweight. Overweight becomes the larger public health burden.',
+    cls: 'end'
+  }
+];
+
+const NODE_W = 210;
+const GAP    = 36;
+const PAD    = 80;
+
+const track  = document.getElementById('tl-track');
+const spine  = document.getElementById('spine');
+const scroll = document.getElementById('tl-scroll');
+const pbar   = document.getElementById('pbar');
+const dotsEl = document.getElementById('dots');
+const arrL   = document.getElementById('arr-l');
+const arrR   = document.getElementById('arr-r');
+
+/* Build nodes */
+NODES.forEach(function(n) {
+  const el = document.createElement('div');
+  el.className = 'node' + (n.cls ? ' ' + n.cls : '');
+  el.innerHTML =
+    '<div class="node-dot"></div>' +
+    '<div class="node-era">' + n.era + '</div>' +
+    '<div class="node-heading">' + n.heading + '</div>' +
+    '<div class="node-body">' + n.body + '</div>' +
+    (n.note ? '' : '');
+  track.appendChild(el);
+});
+
+/* Set track and spine width */
+const totalW = PAD * 2 + NODES.length * NODE_W + (NODES.length - 1) * GAP;
+track.style.width = totalW + 'px';
+spine.style.width = (totalW - PAD * 2) + 'px';
+
+/* Dots */
+const dotEls = [];
+NODES.forEach(function(_, i) {
+  const d = document.createElement('button');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('aria-label', 'Jump to stage ' + (i + 1));
+  d.addEventListener('click', function() { scrollToNode(i); });
+  dotsEl.appendChild(d);
+  dotEls.push(d);
+});
+
+function nodeCenter(i) {
+  return PAD + i * (NODE_W + GAP) + NODE_W / 2;
+}
+
+function scrollToNode(i) {
+  const vw = scroll.offsetWidth;
+  const left = Math.max(0, nodeCenter(i) - vw / 2);
+  scroll.scrollTo({ left: left, behavior: 'smooth' });
+}
+
+function activeNode() {
+  const mid = scroll.scrollLeft + scroll.offsetWidth / 2;
+  let best = 0, bestD = Infinity;
+  NODES.forEach(function(_, i) {
+    const d = Math.abs(nodeCenter(i) - mid);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+function updateUI() {
+  const sl  = scroll.scrollLeft;
+  const max = scroll.scrollWidth - scroll.offsetWidth;
+  pbar.style.width = (max > 0 ? sl / max * 100 : 0) + '%';
+  const a = activeNode();
+  dotEls.forEach(function(d, i) { d.classList.toggle('active', i === a); });
+  arrL.classList.toggle('hidden', sl <= 2);
+  arrR.classList.toggle('hidden', sl >= max - 2);
+}
+
+scroll.addEventListener('scroll', updateUI, { passive: true });
+
+arrL.addEventListener('click', function() { scrollToNode(Math.max(0, activeNode() - 1)); });
+arrR.addEventListener('click', function() { scrollToNode(Math.min(NODES.length - 1, activeNode() + 1)); });
+
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); scrollToNode(Math.min(NODES.length - 1, activeNode() + 1)); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); scrollToNode(Math.max(0, activeNode() - 1)); }
+});
+
+window.addEventListener('resize', updateUI);
+updateUI();
+</script>
+</body>
+</html>
