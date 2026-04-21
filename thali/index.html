@@ -4,101 +4,114 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dr V Mohan's Plate</title>
+
 <style>
-  :root {
-    --red: #D42B2B;
-    --dark: #1a1a1a;
-    --grey: #6b7280;
-    --bg: #D9D9D9;
-    --ring: #d4c9b0;
-    --font: 'Gill Sans', 'GillSans', 'Gill Sans MT', Calibri, sans-serif;
-  }
+:root {
+  --red: #D42B2B;
+  --dark: #1a1a1a;
+  --grey: #6b7280;
+  --bg: #D9D9D9;
+  --ring: #d4c9b0;
+  --font: 'Gill Sans', 'GillSans', 'Gill Sans MT', Calibri, sans-serif;
+}
 
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  body {
-    background: var(--bg);
-    font-family: var(--font);
-  }
+body {
+  background: var(--bg);
+  font-family: var(--font);
+}
 
-  .plate-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 0 1.5rem;
-    gap: 1.1rem;
-  }
+.plate-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0 1.5rem;
+  gap: 1.1rem;
+}
 
-  .headline {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--red);
-    text-align: center;
-    max-width: 420px;
-    line-height: 1.4;
-  }
+.headline {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--red);
+  text-align: center;
+  max-width: 420px;
+  line-height: 1.4;
+}
 
-  .plate-container {
-    position: relative;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid var(--ring);
+.plate-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--ring);
 
-    /* KEY FIX */
-    background-image: url("plate.png");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 220% auto; /* increase to 240% if still too small */
-  }
+  /* 🔥 FIX: zoomed background image */
+  background-image: url("plate.png");
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: 245% auto; /* tweak 230–260 if needed */
+}
 
-  .plate-overlay {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
+.plate-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 
-  .hint {
-    font-size: 13px;
-    color: var(--grey);
-    font-weight: 500;
-  }
+.hint {
+  font-size: 13px;
+  color: var(--grey);
+  font-weight: 500;
+}
 
-  .tooltip {
-    position: absolute;
-    background: #fff;
-    color: var(--dark);
-    border-radius: 5px;
-    padding: 9px 13px;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.4;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.18s;
-    width: 185px;
-    z-index: 10;
-    border-left: 3px solid transparent;
-  }
+.caption {
+  font-size: 12px;
+  color: var(--grey);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.4;
+  margin-top: 4px;
+}
 
-  .tooltip.visible {
-    opacity: 1;
-  }
+.tooltip {
+  position: absolute;
+  background: #fff;
+  color: var(--dark);
+  border-radius: 5px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s;
+  width: 185px;
+  z-index: 10;
+  border-left: 3px solid transparent;
+}
+
+.tooltip.visible {
+  opacity: 1;
+}
 </style>
 </head>
+
 <body>
 
 <div class="plate-wrap">
   <p class="headline">Dr V Mohan's recommended meal formula</p>
 
   <div class="plate-container">
+
     <svg class="plate-overlay" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+
       <!-- LEFT HALF -->
       <path id="hit1"
         d="M160,160 L160,12 A148,148 0 0,0 160,308 Z"
@@ -125,54 +138,61 @@
   </div>
 
   <p class="hint">Hover over each section of the plate</p>
+
+  <p class="caption">
+    62% of daily calories for most Indians come from carbohydrates—one of the highest rates globally.
+  </p>
 </div>
 
 <script>
-  const sections = {
-    hit1: {
-      text: "Green leafy, non-starchy vegetables",
-      color: "#2a7d5f",
-      tipX: "left",
-      tipY: "mid"
-    },
-    hit2: {
-      text: "Plant protein",
-      color: "#D42B2B",
-      tipX: "right",
-      tipY: "top"
-    },
-    hit3: {
-      text: "Complex carbohydrates",
-      color: "#c47b2a",
-      tipX: "right",
-      tipY: "bottom"
-    }
-  };
+const sections = {
+  hit1: {
+    text: "Green leafy, non-starchy vegetables",
+    color: "#2a7d5f",
+    tipX: "left",
+    tipY: "mid"
+  },
+  hit2: {
+    text: "Plant protein",
+    color: "#D42B2B",
+    tipX: "right",
+    tipY: "top"
+  },
+  hit3: {
+    text: "Complex carbohydrates",
+    color: "#c47b2a",
+    tipX: "right",
+    tipY: "bottom"
+  }
+};
 
-  const tooltip = document.getElementById("tooltip");
+const tooltip = document.getElementById("tooltip");
 
-  Object.keys(sections).forEach(id => {
-    const el = document.getElementById(id);
+Object.keys(sections).forEach(id => {
+  const el = document.getElementById(id);
 
-    el.addEventListener("mouseenter", () => {
-      const s = sections[id];
-      el.setAttribute("fill-opacity", "0.22");
-      tooltip.textContent = s.text;
-      tooltip.style.borderLeftColor = s.color;
-      tooltip.style.left = (s.tipX === "left" ? 8 : 126) + "px";
+  el.addEventListener("mouseenter", () => {
+    const s = sections[id];
 
-      if (s.tipY === "top") tooltip.style.top = "16px";
-      if (s.tipY === "mid") tooltip.style.top = "118px";
-      if (s.tipY === "bottom") tooltip.style.top = "246px";
+    el.setAttribute("fill-opacity", "0.22");
 
-      tooltip.classList.add("visible");
-    });
+    tooltip.textContent = s.text;
+    tooltip.style.borderLeftColor = s.color;
 
-    el.addEventListener("mouseleave", () => {
-      el.setAttribute("fill-opacity", "0");
-      tooltip.classList.remove("visible");
-    });
+    tooltip.style.left = (s.tipX === "left" ? 8 : 126) + "px";
+
+    if (s.tipY === "top") tooltip.style.top = "16px";
+    if (s.tipY === "mid") tooltip.style.top = "118px";
+    if (s.tipY === "bottom") tooltip.style.top = "246px";
+
+    tooltip.classList.add("visible");
   });
+
+  el.addEventListener("mouseleave", () => {
+    el.setAttribute("fill-opacity", "0");
+    tooltip.classList.remove("visible");
+  });
+});
 </script>
 
 </body>
