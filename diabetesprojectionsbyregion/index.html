@@ -33,7 +33,7 @@ html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--
   background: var(--bg); padding: 0 var(--pad);
 }
 .intro-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.intro-inner h1 { font-size: 36px; font-weight: 700; line-height: 1.25; color: var(--dark); }
+.intro-inner h1 { font-size: 30px; font-weight: 700; line-height: 1.25; color: var(--dark); max-width: 600px; }
 .intro-inner h1 span { color: var(--red); }
 .start-btn {
   margin-top: 28px; padding: 12px 36px;
@@ -57,9 +57,9 @@ html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--
   padding: 8px var(--pad) 52px 0; min-width: 0;
 }
 
-.region-name { font-size: 22px; font-weight: 700; color: var(--dark); line-height: 1.2; margin-bottom: 20px; }
+.region-name { font-size: 22px; font-weight: 700; color: var(--dark); line-height: 1.2; margin-bottom: 16px; }
 
-.legend { display: flex; gap: 18px; margin-bottom: 6px; }
+.legend { display: flex; gap: 18px; margin-bottom: 16px; }
 .leg-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--grey); font-weight: 500; }
 .leg-swatch { width: 26px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .leg-2024 { background: var(--red); opacity: 0.45; }
@@ -117,13 +117,13 @@ html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--
   #widget { height: auto; }
   #track { height: auto; align-items: flex-start; }
   .intro-slide { height: auto; min-height: 280px; padding: 48px 24px; }
-  .intro-inner h1 { font-size: 26px; }
+  .intro-inner h1 { font-size: 22px; }
   .method-slide { height: auto; min-height: 260px; padding: 40px 24px; }
   .methodology-text { font-size: 12px; }
   .slide { flex-direction: column; height: auto; }
   .slide-left { width: 100%; padding: 28px 24px 10px; }
   .slide-right { width: 100%; padding: 4px 16px 8px; }
-  .region-name { font-size: 18px; margin-bottom: 14px; }
+  .region-name { font-size: 18px; margin-bottom: 10px; }
   .bar-row { margin-bottom: 10px; padding-right: 52px; }
   .bar-pct { font-size: 12px; margin-left: 6px; }
   .case-sentence { font-size: 12.5px; margin-top: 12px; }
@@ -146,56 +146,78 @@ html, body { margin: 0; padding: 0; font-family: var(--font); background: var(--
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
+// ISO alpha-3 → numeric mapping — sourced directly from IDF Atlas 11th ed. (2025) factsheets
+// Note: small island territories (Mauritius, Seychelles, Cape Verde, Comoros, Sao Tome,
+// Mayotte, Fr. Polynesia, Guam, Niue, Micronesia, Hong Kong, Macau) are not present as
+// separate polygons in the 110m topojson — too small to render at this resolution.
 const NUMERIC = {
-  'DZA':12,'BHR':48,'DJI':262,'EGY':818,'IRN':364,'IRQ':368,'ISR':376,'JOR':400,
-  'KWT':414,'LBN':422,'LBY':434,'MAR':504,'MLT':470,'MRT':478,'OMN':512,'PSE':275,
-  'QAT':634,'SAU':682,'SDN':729,'SOM':706,'SYR':760,'TUN':788,'ARE':784,'YEM':887,
-  'AUS':36,'BRN':96,'CHN':156,'FJI':242,'HKG':344,'IDN':360,'JPN':392,'KHM':116,
-  'KIR':296,'KOR':410,'LAO':418,'MAC':446,'MHL':584,'MMR':104,'MNG':496,'MYS':458,
-  'NRU':520,'NZL':554,'PHL':608,'PLW':585,'PNG':598,'PRK':408,'SGP':702,'SLB':90,
-  'THA':764,'TLS':626,'TON':776,'TUV':798,'TWN':158,'VNM':704,'VUT':548,'WSM':882,
-  'BGD':50,'BTN':64,'IND':356,'LKA':144,'MDV':462,'NPL':524,'PAK':586,'SUR':740,
+  // MENA (21): Afghanistan, Algeria, Bahrain, Egypt, Iraq, Iran, Jordan, Kuwait, Lebanon,
+  // Libya, Morocco, Oman, Pakistan, Qatar, Saudi Arabia, State of Palestine, Sudan,
+  // Syria, Tunisia, UAE, Yemen
+  'AFG':4,'DZA':12,'BHR':48,'EGY':818,'IRQ':368,'IRN':364,'JOR':400,
+  'KWT':414,'LBN':422,'LBY':434,'MAR':504,'OMN':512,'PAK':586,'PSE':275,
+  'QAT':634,'SAU':682,'SDN':729,'SYR':760,'TUN':788,'ARE':784,'YEM':887,
+  // SEA (7) — renderable ones only; Mauritius (480) not in topojson at 110m
+  'BGD':50,'BTN':64,'IND':356,'MDV':462,'NPL':524,'LKA':144,
+  // WP (37) — renderable ones; HKG(344), MAC(446), PYF(258), GUM(316), NIU(570), FSM(583) not in topojson
+  'AUS':36,'BRN':96,'KHM':116,'CHN':156,'PRK':408,'FJI':242,
+  'IDN':360,'JPN':392,'KIR':296,'LAO':418,'MYS':458,
+  'MHL':584,'MNG':496,'MMR':104,'NRU':520,'NCL':540,'NZL':554,'PLW':585,
+  'PNG':598,'PHL':608,'KOR':410,'WSM':882,'SGP':702,'SLB':90,'TWN':158,'THA':764,
+  'TLS':626,'TON':776,'TUV':798,'VUT':548,'VNM':704,
+  // SACA (19) — PRI(630) is in topojson
   'ARG':32,'BOL':68,'BRA':76,'CHL':152,'COL':170,'CRI':188,'CUB':192,'DOM':214,
-  'ECU':218,'GTM':320,'GUY':328,'HND':340,'HTI':332,'JAM':388,'MEX':484,'NIC':558,
-  'PAN':591,'PER':604,'PRY':600,'SLV':222,'TTO':780,'URY':858,'VEN':862,'BLZ':84,
-  'AGO':24,'BEN':204,'BFA':854,'BDI':108,'CMR':120,'CAF':140,'TCD':148,'COM':174,
-  'COD':180,'COG':178,'CIV':384,'CPV':132,'GAB':266,'GMB':270,'GHA':288,'GIN':324,
-  'GNB':624,'GNQ':226,'KEN':404,'LSO':426,'LBR':430,'MDG':450,'MWI':454,'MLI':466,
-  'MUS':480,'MOZ':508,'NAM':516,'NER':562,'NGA':566,'RWA':646,'STP':678,'SEN':686,
-  'SLE':694,'SWZ':748,'TZA':834,'TGO':768,'UGA':800,'ZMB':894,'ZWE':716,'ZAF':710,
-  'ETH':231,'ERI':232,'SSD':728,'BWA':72
+  'ECU':218,'SLV':222,'GTM':320,'HND':340,'NIC':558,'PAN':591,'PRY':600,'PER':604,
+  'PRI':630,'URY':858,'VEN':862,
+  // AFR (49) — CPV(132), COM(174), STP(678), SYC(690), MYT(175) not in topojson at 110m
+  // Western Sahara (ESH:732) is in Africa factsheet — Africa only, not MENA
+  // Note: ESH shares its topojson polygon with Morocco so colours together with it
+  'AGO':24,'BEN':204,'BWA':72,'BFA':854,'BDI':108,'CMR':120,'CAF':140,
+  'TCD':148,'COD':180,'DJI':262,'GNQ':226,'ERI':232,'SWZ':748,'ETH':231,
+  'GAB':266,'GMB':270,'GHA':288,'GIN':324,'GNB':624,'CIV':384,'KEN':404,'LSO':426,
+  'LBR':430,'MDG':450,'MWI':454,'MLI':466,'MRT':478,'MOZ':508,'NAM':516,
+  'NER':562,'NGA':566,'COG':178,'RWA':646,'SEN':686,'SLE':694,
+  'SOM':706,'ZAF':710,'SSD':728,'TGO':768,'UGA':800,'TZA':834,'ZMB':894,
+  'ZWE':716
 };
 
 const REGIONS = [
   {
-    name: 'Middle East & North Africa',
+    name: 'Middle East &amp; North Africa',
     p24: 19.9, p50: 22.8,
-    cases: '85 million people live with diabetes in the Middle East & North Africa IDF region, projected to rise to 163 million by 2050. The highest prevalence of any IDF region.',
-    iso: ['DZA','BHR','DJI','EGY','IRN','IRQ','ISR','JOR','KWT','LBN','LBY','MAR','MLT','MRT','OMN','PSE','QAT','SAU','SDN','SOM','SYR','TUN','ARE','YEM']
+    cases: '85 million people live with diabetes in the Middle East &amp; North Africa region, projected to rise to 163 million by 2050. The highest prevalence of any IDF region.',
+    iso: ['AFG','DZA','BHR','EGY','IRQ','IRN','JOR','KWT','LBN','LBY','MAR','OMN',
+          'PAK','PSE','QAT','SAU','SDN','SYR','TUN','ARE','YEM']
   },
   {
     name: 'Western Pacific',
     p24: 11.1, p50: 12.8,
     cases: '215 million people live with diabetes in the Western Pacific IDF region – more than any other. Projected to reach 254 million by 2050.',
-    iso: ['AUS','BRN','CHN','FJI','HKG','IDN','JPN','KHM','KIR','KOR','LAO','MAC','MHL','MMR','MNG','MYS','NRU','NZL','PHL','PLW','PNG','PRK','SGP','SLB','THA','TLS','TON','TUV','TWN','VNM','VUT','WSM']
+    iso: ['AUS','BRN','KHM','CHN','PRK','FSM','FJI','PYF','GUM','HKG','IDN','JPN',
+          'KIR','LAO','MAC','MYS','MHL','MNG','MMR','NRU','NCL','NZL','NIU','PLW',
+          'PNG','PHL','KOR','WSM','SGP','SLB','TWN','THA','TLS','TON','TUV','VUT','VNM']
   },
   {
     name: 'South-East Asia',
     p24: 10.8, p50: 13.0,
     cases: '107 million people live with diabetes in the South-East Asia IDF region, projected to reach 185 million by 2050.',
-    iso: ['BGD','BTN','IND','LKA','MDV','NPL','PAK','SUR']
+    iso: ['BGD','BTN','IND','MDV','MUS','NPL','LKA']
   },
   {
-    name: 'South & Central America',
+    name: 'South &amp; Central America',
     p24: 10.1, p50: 11.5,
-    cases: '35 million people live with diabetes in the South & Central America IDF region, projected to reach 52 million by 2050.',
-    iso: ['ARG','BOL','BRA','CHL','COL','CRI','CUB','DOM','ECU','GTM','GUY','HND','HTI','JAM','MEX','NIC','PAN','PER','PRY','SLV','TTO','URY','VEN','BLZ']
+    cases: '35 million people live with diabetes in the South &amp; Central America IDF region, projected to reach 52 million by 2050.',
+    iso: ['ARG','BOL','BRA','CHL','COL','CRI','CUB','DOM','ECU','SLV','GTM','HND',
+          'NIC','PAN','PRY','PER','PRI','URY','VEN']
   },
   {
     name: 'Africa',
     p24: 5.0, p50: 5.9,
-    cases: '25 million people live with diabetes in the Africa IDF region, projected to reach 60 million by 2050 – the fastest rate of growth of any IDF region. Over 70 per cent of cases are currently undiagnosed.',
-    iso: ['AGO','BEN','BFA','BDI','CMR','CAF','TCD','COM','COD','COG','CIV','CPV','GAB','GMB','GHA','GIN','GNB','GNQ','KEN','LSO','LBR','MDG','MWI','MLI','MUS','MOZ','NAM','NER','NGA','RWA','STP','SEN','SLE','SWZ','TZA','TGO','UGA','ZMB','ZWE','ZAF','ETH','ERI','SSD','BWA']
+    cases: '25 million people live with diabetes in Africa, projected to reach 60 million by 2050 – the fastest rate of growth of any IDF region. Over 70 per cent of cases are currently undiagnosed.',
+    iso: ['AGO','BEN','BWA','BFA','BDI','CMR','CPV','CAF','TCD','COM','COD','DJI',
+          'GNQ','ERI','SWZ','ETH','GAB','GMB','GHA','GIN','GNB','CIV','KEN','LSO',
+          'LBR','MDG','MWI','MLI','MRT','MYT','MOZ','NAM','NER','NGA','COG','RWA',
+          'STP','SEN','SYC','SLE','SOM','ZAF','SSD','TGO','UGA','TZA','ZMB','ZWE']
   }
 ];
 
@@ -233,19 +255,18 @@ REGIONS.forEach((r, i) => {
       <div class="leg-item"><div class="leg-swatch leg-2024"></div>2024</div>
       <div class="leg-item"><div class="leg-swatch leg-2050"></div>2050 (projected)</div>
     </div>
-    <div class="legend-note">Age-standardised prevalence, adults 20–79</div>
     <div class="bar-row">
       <div class="bar-year">2024</div>
       <div class="bar-track">
         <div class="bar-fill bar-2024" data-w="${w24}"></div>
-        <div class="bar-pct">${r.p24}%</div>
+        <div class="bar-pct">${r.p24.toFixed(1)}%</div>
       </div>
     </div>
     <div class="bar-row">
       <div class="bar-year">2050</div>
       <div class="bar-track">
         <div class="bar-fill bar-2050" data-w="${w50}"></div>
-        <div class="bar-pct">${r.p50}%</div>
+        <div class="bar-pct">${r.p50.toFixed(1)}%</div>
       </div>
     </div>
     <div class="case-sentence">${r.cases}</div>`;
@@ -256,9 +277,7 @@ REGIONS.forEach((r, i) => {
 
   const src = document.createElement('div');
   src.className = 'src';
-  src.textContent = i === 0
-    ? 'Source: International Diabetes Federation (IDF) Diabetes Atlas, 11th edition, 2025'
-    : 'Source: IDF Diabetes Atlas, 11th edition, 2025';
+  src.textContent = 'Source: International Diabetes Federation (IDF) Diabetes Atlas, 11th edition, 2025';
 
   s.appendChild(left);
   s.appendChild(right);
@@ -270,7 +289,7 @@ REGIONS.forEach((r, i) => {
 /* ── METHODOLOGY ── */
 const meth = document.createElement('div');
 meth.className = 'method-slide';
-meth.innerHTML = `<p class="methodology-text">Prevalence figures are IDF estimates of total diabetes burden among adults aged 20–79, encompassing both diagnosed cases and those estimated to be undiagnosed. All figures are age-standardised to allow fair comparison across regions with different population age structures. Data are from the IDF Diabetes Atlas, 11th edition (2025), which covers 215 countries using studies conducted between 2005 and 2024. Five of the seven IDF regions are shown – those for which the Atlas publishes both a 2024 figure and a projected 2050 figure. Europe and North America &amp; Caribbean are excluded as the Atlas publishes projected case counts for these regions but not projected prevalence percentages, making a like-for-like comparison impossible.</p>`;
+meth.innerHTML = `<p class="methodology-text">Prevalence figures are IDF estimates of total diabetes burden among adults aged 20–79, encompassing both diagnosed cases and those estimated to be undiagnosed. All figures are age-standardised to allow fair comparison across regions with different population age structures. Data are from the IDF Diabetes Atlas, 11th edition (2025), which covers 215 countries using studies conducted between 2005 and 2024. Five of the seven IDF regions are shown – those for which the Atlas publishes both a 2024 figure and a projected 2050 prevalence figure. Europe and North America &amp; Caribbean are excluded as the Atlas publishes projected case counts for these regions but not projected prevalence percentages, making a like-for-like comparison impossible.</p>`;
 track.appendChild(meth);
 
 /* ── DOTS ── */
@@ -308,12 +327,13 @@ function ui() {
   syncHeight();
 }
 
-/* ── BAR ANIMATION ── */
+/* ── BAR ANIMATION — always re-triggers on every visit ── */
 function animateBars(slideEl) {
   const fills = slideEl.querySelectorAll('.bar-fill');
   const pcts  = slideEl.querySelectorAll('.bar-pct');
   fills.forEach(f => { f.style.transition = 'none'; f.style.width = '0%'; });
   pcts.forEach(p  => { p.style.opacity = '0'; p.style.transition = 'none'; });
+  slideEl.offsetHeight;
   setTimeout(() => {
     fills[0].style.transition = 'width 0.85s cubic-bezier(0.4,0,0.2,1)';
     fills[0].style.width = fills[0].dataset.w + '%';
@@ -337,6 +357,8 @@ function buildMap(container, regionIdx) {
   const proj = d3.geoNaturalEarth1().scale(scale).translate([W / 2, H / 2 + Math.round(H * 0.04)]);
   const path = d3.geoPath(proj);
   const allFeatures = topojson.feature(worldData, worldData.objects.countries).features;
+  const existing = container.querySelector('svg');
+  if (existing) existing.remove();
   const svg = d3.select(container).append('svg')
     .attr('viewBox', `0 0 ${W} ${H}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
@@ -348,7 +370,7 @@ function buildMap(container, regionIdx) {
     .attr('d', path);
 }
 
-/* ── NAVIGATION ── */
+/* ── NAVIGATION — always re-animates on entry ── */
 function go(n) {
   if (n < 0 || n >= TOTAL || busy) return;
   busy = true; cur = n; ui();
@@ -356,7 +378,7 @@ function go(n) {
   if (ri >= 0 && ri < REGIONS.length) {
     animateBars(slideEls[ri]);
     const cont = document.getElementById('map-right-' + ri);
-    if (cont && !cont.querySelector('svg') && worldData) buildMap(cont, ri);
+    if (cont && worldData) buildMap(cont, ri);
   }
   setTimeout(() => { busy = false; }, 850);
 }
@@ -366,18 +388,32 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
   ui();
 });
 
-let acc = 0, touchY = 0;
+/* ── WHEEL ── */
+let acc = 0;
 widget.addEventListener('wheel', e => {
   e.preventDefault();
   if (busy) return;
   acc += e.deltaY;
   if (Math.abs(acc) >= 80) { go(acc > 0 ? cur + 1 : cur - 1); acc = 0; }
 }, { passive: false });
-widget.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
-widget.addEventListener('touchend', e => {
-  const d = touchY - e.changedTouches[0].clientY;
-  if (Math.abs(d) > 40) go(d > 0 ? cur + 1 : cur - 1);
+
+/* ── TOUCH / SWIPE (mobile) ── */
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+widget.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
 }, { passive: true });
+widget.addEventListener('touchend', e => {
+  const dx = touchStartX - e.changedTouches[0].clientX;
+  const dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
+  const dt = Date.now() - touchStartTime;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > dy * 1.5 && dt < 500) {
+    go(dx > 0 ? cur + 1 : cur - 1);
+  }
+}, { passive: true });
+
+/* ── KEYBOARD ── */
 window.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
